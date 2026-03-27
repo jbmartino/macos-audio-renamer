@@ -2,6 +2,8 @@
 
 A lightweight macOS menu bar app for managing audio devices — built for people with multiple Apple Studio Displays that share identical names.
 
+![Menu Bar](screenshots/menubar.png) ![Settings](screenshots/settings.png)
+
 ## Features
 
 - **One-click switching** — set default input, output, or both from the menu bar
@@ -24,7 +26,7 @@ A lightweight macOS menu bar app for managing audio devices — built for people
 Requires macOS 14+ and Swift 5.9+.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/studio-display-renamer.git
+git clone https://github.com/jbmartino/studio-display-renamer.git
 cd studio-display-renamer
 bash scripts/build-dmg.sh
 open StudioDisplayRenamer.app
