@@ -14,7 +14,8 @@ DMG_STAGING=".build/dmg-staging"
 SIGN_IDENTITY="${CODESIGN_IDENTITY:-}"
 
 echo "==> Building ${APP_NAME} v${VERSION}..."
-swift build -c release
+swift build -c release --verbose 2>&1 | tail -20
+echo "==> Swift build complete."
 
 echo "==> Creating app bundle..."
 rm -rf "${APP_BUNDLE}"
@@ -68,7 +69,7 @@ if [ -n "${NOTARIZE_APPLE_ID:-}" ] && [ -n "${NOTARIZE_PASSWORD:-}" ] && [ -n "$
         --apple-id "${NOTARIZE_APPLE_ID}" \
         --password "${NOTARIZE_PASSWORD}" \
         --team-id "${NOTARIZE_TEAM_ID}" \
-        --wait
+        --wait --timeout 10m --verbose 2>&1 | tail -20
 
     echo "==> Stapling notarization ticket..."
     xcrun stapler staple "${DMG_NAME}"
