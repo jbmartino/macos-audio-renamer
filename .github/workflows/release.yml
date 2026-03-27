@@ -13,12 +13,15 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Install certificate
+      - name: Install certificate and store notarization credentials
         env:
           CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE }}
           CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           # Create a temporary keychain
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
@@ -38,18 +41,23 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
 
+          # Store notarization credentials in a keychain profile
+          xcrun notarytool store-credentials "notarize-profile" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --keychain "$KEYCHAIN_PATH"
+
       - name: Find signing identity
         id: identity
         run: |
           IDENTITY=$(security find-identity -v -p codesigning "$RUNNER_TEMP/build.keychain-db" | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "name=$IDENTITY" >> "$GITHUB_OUTPUT"
 
-      - name: Build and sign DMG
+      - name: Build, sign, and notarize DMG
         env:
           CODESIGN_IDENTITY: ${{ steps.identity.outputs.name }}
-          NOTARIZE_APPLE_ID: ${{ secrets.APPLE_ID }}
-          NOTARIZE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          NOTARIZE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZE_PROFILE: notarize-profile
         run: bash scripts/build-dmg.sh "${GITHUB_REF_NAME#v}"
 
       - name: Clean up keychain
@@ -57,7 +65,7 @@ jobs:
         run: security delete-keychain "$RUNNER_TEMP/build.keychain-db" || true
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
           files: "*.dmg"
           generate_release_notes: true

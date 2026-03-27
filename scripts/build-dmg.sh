@@ -40,26 +40,6 @@ else
     echo "==> Skipping code signing (no CODESIGN_IDENTITY set)"
 fi
 
-# Notarize the app bundle (smaller than DMG, faster processing)
-if [ -n "${NOTARIZE_APPLE_ID:-}" ] && [ -n "${NOTARIZE_PASSWORD:-}" ] && [ -n "${NOTARIZE_TEAM_ID:-}" ]; then
-    echo "==> Creating zip for notarization..."
-    ditto -c -k --keepParent "${APP_BUNDLE}" "${APP_NAME}.zip"
-    echo "    Zip size: $(du -h "${APP_NAME}.zip" | cut -f1)"
-
-    echo "==> Submitting for notarization..."
-    xcrun notarytool submit "${APP_NAME}.zip" \
-        --apple-id "${NOTARIZE_APPLE_ID}" \
-        --password "${NOTARIZE_PASSWORD}" \
-        --team-id "${NOTARIZE_TEAM_ID}" \
-        --wait --timeout 10m
-
-    echo "==> Stapling notarization ticket to app..."
-    xcrun stapler staple "${APP_BUNDLE}"
-    rm "${APP_NAME}.zip"
-else
-    echo "==> Skipping notarization (credentials not set)"
-fi
-
 echo "==> Creating DMG..."
 rm -rf "${DMG_STAGING}"
 mkdir -p "${DMG_STAGING}"
@@ -76,10 +56,26 @@ hdiutil create \
 
 rm -rf "${DMG_STAGING}"
 
+echo "==> Verifying DMG integrity..."
+hdiutil verify "${DMG_NAME}"
+
 # Sign the DMG
 if [ -n "${SIGN_IDENTITY}" ]; then
     echo "==> Signing DMG..."
     codesign --force --sign "${SIGN_IDENTITY}" "${DMG_NAME}"
+fi
+
+# Notarize and staple the DMG
+if [ -n "${NOTARIZE_PROFILE:-}" ]; then
+    echo "==> Submitting DMG for notarization..."
+    xcrun notarytool submit "${DMG_NAME}" \
+        --keychain-profile "${NOTARIZE_PROFILE}" \
+        --wait --timeout 10m
+
+    echo "==> Stapling notarization ticket to DMG..."
+    xcrun stapler staple "${DMG_NAME}"
+else
+    echo "==> Skipping notarization (no keychain profile set)"
 fi
 
 echo ""
