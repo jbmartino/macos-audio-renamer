@@ -53,3 +53,9 @@ For built-in devices (MacBook Pro, AirPods) and virtual devices (Microsoft Teams
 
 - macOS 14 (Sonoma) or later
 - No Apple Developer account needed for personal use
+
+## Support me
+
+If you found this useful, consider supporting me!
+
+[![Support me on Ko-fi](https://www.joshbmartin.com/assets/img/support_me_on_kofi_red.png)](https://ko-fi.com/jbmartino)
