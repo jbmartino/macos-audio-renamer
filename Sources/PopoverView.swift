@@ -161,7 +161,12 @@ struct PopoverView: View {
             .padding(.vertical, 8)
         }
         .frame(width: 720, height: 520)
-        .onAppear { loadNames() }
+        .onAppear {
+            loadNames()
+            DispatchQueue.main.async {
+                NSApp.keyWindow?.makeFirstResponder(nil)
+            }
+        }
         .onDisappear { stopInputTest() }
     }
 

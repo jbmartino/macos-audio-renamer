@@ -31,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate(ignoringOtherApps: true)
             popover.contentViewController?.view.window?.makeKey()
+            popover.contentViewController?.view.window?.makeFirstResponder(nil)
         }
     }
 }
