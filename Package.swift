@@ -2,16 +2,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "StudioDisplayRenamer",
+    name: "MacOSAudioRenamer",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "StudioDisplayRenamer",
+            name: "MacOSAudioRenamer",
             path: "Sources"
         ),
         .testTarget(
-            name: "StudioDisplayRenamerTests",
-            dependencies: ["StudioDisplayRenamer"],
+            name: "MacOSAudioRenamerTests",
+            dependencies: ["MacOSAudioRenamer"],
             path: "Tests"
         )
     ]

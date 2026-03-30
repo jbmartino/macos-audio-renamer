@@ -4,8 +4,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 VERSION="${1:-1.0.0}"
-APP_NAME="Studio Display Renamer"
-EXECUTABLE_NAME="StudioDisplayRenamer"
+APP_NAME="macOS Audio Renamer"
+EXECUTABLE_NAME="MacOSAudioRenamer"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${APP_NAME}.app"

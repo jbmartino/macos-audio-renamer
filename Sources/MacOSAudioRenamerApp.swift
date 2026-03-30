@@ -9,7 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "speaker.wave.2.fill", accessibilityDescription: "Studio Display Renamer")
+            button.image = NSImage(systemSymbolName: "speaker.wave.2.fill", accessibilityDescription: "macOS Audio Renamer")
             button.action = #selector(togglePopover)
             button.target = self
         }
@@ -37,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-struct StudioDisplayRenamerApp: App {
+struct MacOSAudioRenamerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

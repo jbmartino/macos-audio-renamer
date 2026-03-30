@@ -1,5 +1,5 @@
 import Testing
-@testable import StudioDisplayRenamer
+@testable import MacOSAudioRenamer
 
 @Suite("AudioDevice Grouping")
 struct AudioDeviceGroupingTests {

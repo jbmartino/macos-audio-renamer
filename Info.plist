@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.josh.StudioDisplayRenamer</string>
+    <string>com.josh.MacOSAudioRenamer</string>
     <key>CFBundleName</key>
-    <string>Studio Display Renamer</string>
+    <string>macOS Audio Renamer</string>
     <key>CFBundleDisplayName</key>
-    <string>Studio Display Renamer</string>
+    <string>macOS Audio Renamer</string>
     <key>CFBundleExecutable</key>
-    <string>StudioDisplayRenamer</string>
+    <string>MacOSAudioRenamer</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>
@@ -21,6 +21,6 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Studio Display Renamer manages audio devices.</string>
+    <string>macOS Audio Renamer manages audio devices.</string>
 </dict>
 </plist>

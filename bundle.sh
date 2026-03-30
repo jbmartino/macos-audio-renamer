@@ -6,9 +6,9 @@ cd "$(dirname "$0")"
 echo "Building..."
 swift build -c release
 
-APP_BUNDLE="Studio Display Renamer.app"
+APP_BUNDLE="macOS Audio Renamer.app"
 mkdir -p "${APP_BUNDLE}/Contents/MacOS"
-cp .build/release/StudioDisplayRenamer "${APP_BUNDLE}/Contents/MacOS/"
+cp .build/release/MacOSAudioRenamer "${APP_BUNDLE}/Contents/MacOS/"
 cp Info.plist "${APP_BUNDLE}/Contents/"
 
 if [ -f "AppIcon.icns" ]; then
