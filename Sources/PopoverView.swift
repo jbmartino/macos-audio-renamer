@@ -82,7 +82,7 @@ struct PopoverView: View {
                         Label("Output", systemImage: "speaker.wave.2")
                             .font(.system(size: 13, weight: .semibold))
 
-                        let outputDevices = manager.devices.filter(\.hasOutput)
+                        let outputDevices = manager.devices.filter(\.hasOutput).sorted { $0.hardwareGroupKey < $1.hardwareGroupKey }
                         if outputDevices.isEmpty {
                             Text("No output devices")
                                 .font(.system(size: 11))
@@ -115,7 +115,7 @@ struct PopoverView: View {
                         Label("Input", systemImage: "mic")
                             .font(.system(size: 13, weight: .semibold))
 
-                        let inputDevices = manager.devices.filter(\.hasInput)
+                        let inputDevices = manager.devices.filter(\.hasInput).sorted { $0.hardwareGroupKey < $1.hardwareGroupKey }
                         if inputDevices.isEmpty {
                             Text("No input devices")
                                 .font(.system(size: 11))
