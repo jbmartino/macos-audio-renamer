@@ -59,7 +59,7 @@ struct PopoverView: View {
                                 }
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
-                                .background(isActive ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.04))
+                                .background(isActive ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.08))
                                 .cornerRadius(6)
                             }
                             .buttonStyle(.plain)
@@ -82,7 +82,12 @@ struct PopoverView: View {
                         Label("Output", systemImage: "speaker.wave.2")
                             .font(.system(size: 13, weight: .semibold))
 
-                        let outputDevices = manager.devices.filter(\.hasOutput).sorted { $0.hardwareGroupKey < $1.hardwareGroupKey }
+                        let outputDevices = manager.devices.filter(\.hasOutput).sorted {
+                            let p0 = $0.uid == Preferences.preferredOutputUID
+                            let p1 = $1.uid == Preferences.preferredOutputUID
+                            if p0 != p1 { return p0 }
+                            return $0.hardwareGroupKey < $1.hardwareGroupKey
+                        }
                         if outputDevices.isEmpty {
                             Text("No output devices")
                                 .font(.system(size: 11))
@@ -115,7 +120,12 @@ struct PopoverView: View {
                         Label("Input", systemImage: "mic")
                             .font(.system(size: 13, weight: .semibold))
 
-                        let inputDevices = manager.devices.filter(\.hasInput).sorted { $0.hardwareGroupKey < $1.hardwareGroupKey }
+                        let inputDevices = manager.devices.filter(\.hasInput).sorted {
+                            let p0 = $0.uid == Preferences.preferredInputUID
+                            let p1 = $1.uid == Preferences.preferredInputUID
+                            if p0 != p1 { return p0 }
+                            return $0.hardwareGroupKey < $1.hardwareGroupKey
+                        }
                         if inputDevices.isEmpty {
                             Text("No input devices")
                                 .font(.system(size: 11))
@@ -160,6 +170,7 @@ struct PopoverView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
         }
+        .background(.ultraThickMaterial)
         .frame(width: 720, height: 520)
         .onAppear {
             loadNames()
@@ -369,7 +380,7 @@ private struct OutputDeviceCard: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(isDefault ? Color.accentColor.opacity(0.06) : Color.primary.opacity(0.03)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(isDefault ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.07)))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(isDefault ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
@@ -461,7 +472,7 @@ private struct InputDeviceCard: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(isDefault ? Color.accentColor.opacity(0.06) : Color.primary.opacity(0.03)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(isDefault ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.07)))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(isDefault ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
