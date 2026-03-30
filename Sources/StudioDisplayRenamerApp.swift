@@ -40,8 +40,11 @@ struct StudioDisplayRenamerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        Settings {
+        WindowGroup {
             EmptyView()
         }
+        .defaultSize(width: 0, height: 0)
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
     }
 }
