@@ -5,6 +5,7 @@ enum Preferences {
     private static let outputKey = "preferredOutputUID"
     private static let customNamesKey = "customDeviceNames"
     private static let switchInputWithOutputKey = "switchInputWithOutput"
+    private static let hasOfferedLoginItemKey = "hasOfferedLoginItem"
 
     static var preferredInputUID: String? {
         get { UserDefaults.standard.string(forKey: inputKey) }
@@ -20,6 +21,12 @@ enum Preferences {
     static var switchInputWithOutput: Bool {
         get { UserDefaults.standard.object(forKey: switchInputWithOutputKey) as? Bool ?? true }
         set { UserDefaults.standard.set(newValue, forKey: switchInputWithOutputKey) }
+    }
+
+    /// Whether the one-time "Open at login?" question has been asked.
+    static var hasOfferedLoginItem: Bool {
+        get { UserDefaults.standard.bool(forKey: hasOfferedLoginItemKey) }
+        set { UserDefaults.standard.set(newValue, forKey: hasOfferedLoginItemKey) }
     }
 
     /// Custom names keyed by either a hardware group key (one name for the whole physical

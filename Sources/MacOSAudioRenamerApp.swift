@@ -7,10 +7,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // One copy only, e.g. when an old-style login item and the new one both launch it.
+        if let id = Bundle.main.bundleIdentifier,
+           NSRunningApplication.runningApplications(withBundleIdentifier: id)
+               .contains(where: { $0 != .current }) {
+            NSApp.terminate(nil)
+            return
+        }
         NSApp.setActivationPolicy(.accessory)
         statusMenu = StatusMenuController(manager: manager, updater: updater) { [weak self] in
             self?.showSettings()
         }
+        // Let the menu bar item appear first.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { LoginItem.offerIfNeeded() }
     }
 
     func showSettings() {

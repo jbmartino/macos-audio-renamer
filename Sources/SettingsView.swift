@@ -10,6 +10,8 @@ struct SettingsView: View {
     @State private var listeningUID: String?
     @State private var inputLevel: Float = 0
     @State private var switchInputWithOutput = Preferences.switchInputWithOutput
+    @State private var openAtLogin = LoginItem.isEnabled || LoginItem.needsApproval
+    @State private var loginNeedsApproval = LoginItem.needsApproval
     @State private var outputTester = OutputTester()
     @State private var inputMonitor = InputLevelMonitor()
 
@@ -26,6 +28,34 @@ struct SettingsView: View {
 
                 section("Behavior") {
                     VStack(alignment: .leading, spacing: 10) {
+                        Toggle(isOn: $openAtLogin) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Open at login")
+                                if loginNeedsApproval {
+                                    HStack(spacing: 4) {
+                                        Text("Allow it in Login Items to finish.")
+                                        Button("Open Settings…") { LoginItem.openSystemSettings() }
+                                            .buttonStyle(.link)
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                } else if !LoginItem.isInstalledCopy {
+                                    Text("Move the app to Applications first.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        .disabled(!LoginItem.isInstalledCopy && !openAtLogin)
+                        .onChange(of: openAtLogin) { _, value in
+                            guard value != (LoginItem.isEnabled || LoginItem.needsApproval) else { return }
+                            LoginItem.setEnabled(value)
+                            refreshLoginItem()
+                        }
+
+                        Divider()
+
                         Toggle(isOn: $switchInputWithOutput) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Switch microphone with speaker")
@@ -95,13 +125,23 @@ struct SettingsView: View {
         .frame(maxHeight: 640)
         .fixedSize(horizontal: false, vertical: true)
         .onAppear {
+            refreshLoginItem()
             outputTester.onFinish = { playingUID = nil }
             inputMonitor.onLevel = { inputLevel = $0 }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
+            refreshLoginItem()
         }
         .onDisappear {
             outputTester.stop()
             stopListening()
         }
+    }
+
+    /// The switch can also change in System Settings, so re-read it.
+    private func refreshLoginItem() {
+        openAtLogin = LoginItem.isEnabled || LoginItem.needsApproval
+        loginNeedsApproval = LoginItem.needsApproval
     }
 
     /// Stable order (by hardware, not by custom name) so rows don't jump while typing.

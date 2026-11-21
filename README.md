@@ -14,6 +14,7 @@ This project was originally inspired by the challenge of using multiple Apple St
 - **Quick switching** — the menu shows your current **Output** and **Input**; hover either to pick another device. Choosing a speaker switches to the same device's mic automatically (can be turned off).
 - **One name per device** — rename a device once and the name applies to both its speaker and mic (e.g., "Studio Display" → "Main Display"). Name them separately in Settings if you want.
 - **Paired device grouping** — speaker + mic pairs are linked for devices that share a name stem (Studio Displays, MacBook Pro, AirPods, etc.)
+- **Open at login** — one switch in Settings (the app asks once after install or update)
 - **Auto-restore** — your preferred device is automatically retained when reconnected
 - **Device testing** — in Settings, play a test chime through any speaker or watch a live mic level meter
 
@@ -59,7 +60,7 @@ swift test
 3. **Input ▸** — choose a different microphone; the pencil on either row renames the current device
 4. **Settings… (⌘,)** — rename devices, name a speaker and mic separately (expand a device with the chevron), test speakers/mics, and toggle "Switch microphone with speaker"
 5. **Check for Updates…** — updates also install automatically (release builds only)
-6. Add to **System Settings > General > Login Items** to launch at startup
+6. **Open at login** — the app offers this the first time it runs from Applications; change it any time in Settings
 
 ## How it works
 
