@@ -10,10 +10,19 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0 # tags + history for the update's release notes
+
+      # Liquid Glass needs the macOS 26 SDK (Xcode 26); older SDKs build the fallback look.
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          swift --version
 
       - name: Install certificate and store notarization credentials
         env:
@@ -60,6 +69,11 @@ jobs:
           NOTARIZE_PROFILE: notarize-profile
         run: bash scripts/build-dmg.sh "${GITHUB_REF_NAME#v}"
 
+      - name: Write the Sparkle update feed
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: bash scripts/make-appcast.sh "${GITHUB_REF_NAME#v}"
+
       - name: Check notarization history
         if: always()
         run: xcrun notarytool history --keychain-profile "notarize-profile" 2>&1 | head -20 || true
@@ -71,5 +85,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
-          files: "*.dmg"
+          files: |
+            *.dmg
+            appcast.xml
           generate_release_notes: true

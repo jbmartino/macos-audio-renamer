@@ -176,3 +176,34 @@ private func makeDevice(
         displayLabel: name
     )
 }
+
+@Suite("Device Naming")
+struct DeviceNamingTests {
+    let speaker = AudioDevice(id: 0, uid: "AppleUSBAudioEngine:Apple Inc.:Studio Display:A1:8,9", name: "Studio Display Speakers", hasInput: false, hasOutput: true, displayLabel: "")
+    let mic = AudioDevice(id: 0, uid: "AppleUSBAudioEngine:Apple Inc.:Studio Display Microphone:A1:6,7", name: "Studio Display Microphone", hasInput: true, hasOutput: false, displayLabel: "")
+
+    func label(_ d: AudioDevice, _ names: [String: String]) -> String {
+        DeviceNaming.label(uid: d.uid, groupKey: d.hardwareGroupKey, originalName: d.name, names: names)
+    }
+
+    @Test("Device name applies unchanged to speaker and mic")
+    func sharedName() {
+        let names = [speaker.hardwareGroupKey: "Main Display"]
+        #expect(label(speaker, names) == "Main Display")
+        #expect(label(mic, names) == "Main Display")
+    }
+
+    @Test("Per-device override beats the shared name")
+    func override() {
+        let names = [speaker.hardwareGroupKey: "Main Display", mic.uid: "Desk Mic"]
+        #expect(label(speaker, names) == "Main Display")
+        #expect(label(mic, names) == "Desk Mic")
+    }
+
+    @Test("Blank names fall back to the macOS name")
+    func blank() {
+        let names = [speaker.hardwareGroupKey: "  ", mic.uid: ""]
+        #expect(label(speaker, names) == "Studio Display Speakers")
+        #expect(label(mic, names) == "Studio Display Microphone")
+    }
+}

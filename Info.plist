@@ -20,7 +20,20 @@
     <string>1.0</string>
     <key>LSUIElement</key>
     <true/>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>macOS Audio Renamer manages audio devices.</string>
+    <string>macOS Audio Renamer uses the microphone only to show a live level meter when you test a mic.</string>
+    <!-- Sparkle. bundle.sh removes SUFeedURL so local builds never update themselves.
+         The private half of SUPublicEDKey is the SPARKLE_PRIVATE_KEY GitHub secret
+         (and the "macos-audio-renamer" item in the login keychain). -->
+    <key>SUFeedURL</key>
+    <string>https://github.com/jbmartino/macos-audio-renamer/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>/iE3zxDqAsz135fR0MeRpgW+bDC1P9D46Apdy2RAo34=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUAutomaticallyUpdate</key>
+    <true/>
 </dict>
 </plist>

@@ -58,6 +58,16 @@ struct AudioDevice {
     }
 }
 
+enum DeviceNaming {
+    static func label(uid: String, groupKey: String, originalName: String, names: [String: String]) -> String {
+        func clean(_ s: String?) -> String? {
+            guard let s, !s.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+            return s
+        }
+        return clean(names[uid]) ?? clean(names[groupKey]) ?? originalName
+    }
+}
+
 func makeDevice(uid: String, name: String, hasInput: Bool = false, hasOutput: Bool = false) -> AudioDevice {
     AudioDevice(id: 0, uid: uid, name: name, hasInput: hasInput, hasOutput: hasOutput, displayLabel: name)
 }
@@ -172,6 +182,30 @@ test("Unpaired devices don't break sorting") {
     let displayOutput = outputs.first { $0.name == "Display Speakers" }!
     let displayInput = inputs.first { $0.name == "Display Microphone" }!
     return displayOutput.hardwareGroupKey == displayInput.hardwareGroupKey
+}
+
+suite("Device Naming")
+
+let namingSpeaker = makeDevice(uid: "AppleUSBAudioEngine:Apple Inc.:Studio Display:A1:8,9", name: "Studio Display Speakers", hasOutput: true)
+let namingMic = makeDevice(uid: "AppleUSBAudioEngine:Apple Inc.:Studio Display Microphone:A1:6,7", name: "Studio Display Microphone", hasInput: true)
+
+func label(_ d: AudioDevice, _ names: [String: String]) -> String {
+    DeviceNaming.label(uid: d.uid, groupKey: d.hardwareGroupKey, originalName: d.name, names: names)
+}
+
+test("Device name applies unchanged to speaker and mic") {
+    let names = [namingSpeaker.hardwareGroupKey: "Main Display"]
+    return label(namingSpeaker, names) == "Main Display" && label(namingMic, names) == "Main Display"
+}
+
+test("Per-device override beats the shared name") {
+    let names = [namingSpeaker.hardwareGroupKey: "Main Display", namingMic.uid: "Desk Mic"]
+    return label(namingSpeaker, names) == "Main Display" && label(namingMic, names) == "Desk Mic"
+}
+
+test("Blank names fall back to the macOS name") {
+    let names = [namingSpeaker.hardwareGroupKey: "  ", namingMic.uid: ""]
+    return label(namingSpeaker, names) == "Studio Display Speakers" && label(namingMic, names) == "Studio Display Microphone"
 }
 
 // MARK: - Results

@@ -1,38 +1,58 @@
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var statusItem: NSStatusItem!
-    var popover: NSPopover!
     let manager = AudioDeviceManager()
+    let updater = Updater()
+    private var statusMenu: StatusMenuController!
+    private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-
-        if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "speaker.wave.2.fill", accessibilityDescription: "macOS Audio Renamer")
-            button.action = #selector(togglePopover)
-            button.target = self
-        }
-
-        let popover = NSPopover()
-        popover.contentSize = NSSize(width: 720, height: 520)
-        popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: PopoverView(manager: manager))
-        self.popover = popover
-
         NSApp.setActivationPolicy(.accessory)
+        statusMenu = StatusMenuController(manager: manager, updater: updater) { [weak self] in
+            self?.showSettings()
+        }
     }
 
-    @objc func togglePopover() {
-        guard let button = statusItem.button else { return }
-        if popover.isShown {
-            popover.performClose(nil)
-        } else {
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            NSApp.activate(ignoringOtherApps: true)
-            popover.contentViewController?.view.window?.makeKey()
-            popover.contentViewController?.view.window?.makeFirstResponder(nil)
+    func showSettings() {
+        if settingsWindow == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 460, height: 520),
+                styleMask: [.titled, .closable, .fullSizeContentView],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "Audio Renamer Settings"
+            window.titleVisibility = .hidden
+            window.titlebarAppearsTransparent = true
+            window.isMovableByWindowBackground = true
+            window.isReleasedWhenClosed = false
+            window.isOpaque = false
+            window.backgroundColor = .clear
+
+            // Translucent, blurred window background — the same material as menus.
+            let background = NSVisualEffectView()
+            background.material = .menu
+            background.blendingMode = .behindWindow
+            background.state = .active
+
+            let hosting = NSHostingView(rootView: SettingsView(manager: manager, updater: updater))
+            hosting.translatesAutoresizingMaskIntoConstraints = false
+            background.addSubview(hosting)
+            NSLayoutConstraint.activate([
+                hosting.leadingAnchor.constraint(equalTo: background.leadingAnchor),
+                hosting.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+                hosting.topAnchor.constraint(equalTo: background.topAnchor),
+                hosting.bottomAnchor.constraint(equalTo: background.bottomAnchor),
+            ])
+            window.contentView = background
+            window.setContentSize(hosting.fittingSize)
+            window.center()
+            settingsWindow = window
         }
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        // Don't drop the cursor into the first name field on open.
+        settingsWindow?.makeFirstResponder(nil)
     }
 }
 
@@ -41,11 +61,7 @@ struct MacOSAudioRenamerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        WindowGroup {
-            EmptyView()
-        }
-        .defaultSize(width: 0, height: 0)
-        .windowResizability(.contentSize)
-        .windowStyle(.hiddenTitleBar)
+        // Menu bar only — the status item and Settings window are managed by AppDelegate.
+        Settings { EmptyView() }
     }
 }

@@ -52,3 +52,21 @@ struct DeviceGroup: Identifiable {
         customName ?? physicalName
     }
 }
+
+enum DeviceNaming {
+    /// Resolves the label shown for a device.
+    /// Order: per-device override → name for the whole physical device → macOS name.
+    /// A physical-device name is used as-is for both its speaker and its mic.
+    static func label(uid: String, groupKey: String, originalName: String, names: [String: String]) -> String {
+        func clean(_ s: String?) -> String? {
+            guard let s, !s.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+            return s
+        }
+        return clean(names[uid]) ?? clean(names[groupKey]) ?? originalName
+    }
+
+    /// Short tag used to tell identical devices apart (e.g. two unnamed Studio Displays).
+    static func shortSerial(_ serial: String) -> String {
+        String(serial.suffix(4))
+    }
+}

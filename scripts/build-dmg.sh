@@ -4,9 +4,11 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 VERSION="${1:-1.0.0}"
+[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "error: version must be X.Y.Z, got '$VERSION'" >&2; exit 1; }
 APP_NAME="macOS Audio Renamer"
 EXECUTABLE_NAME="MacOSAudioRenamer"
-DMG_NAME="${APP_NAME}-${VERSION}.dmg"
+# No spaces: GitHub rewrites them in release asset names, which would break the appcast URL.
+DMG_NAME="macOS-Audio-Renamer-${VERSION}.dmg"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${APP_NAME}.app"
 DMG_STAGING=".build/dmg-staging"
@@ -23,6 +25,9 @@ rm -rf "${APP_BUNDLE}"
 mkdir -p "${APP_BUNDLE}/Contents/MacOS"
 cp "${BUILD_DIR}/${EXECUTABLE_NAME}" "${APP_BUNDLE}/Contents/MacOS/"
 cp Info.plist "${APP_BUNDLE}/Contents/"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "${APP_BUNDLE}/Contents/Info.plist"
+# Sparkle compares CFBundleVersion to decide whether an update is newer.
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${VERSION}" "${APP_BUNDLE}/Contents/Info.plist"
 
 # Copy app icon if it exists
 if [ -f "AppIcon.icns" ]; then
@@ -33,12 +38,15 @@ fi
 # Code sign the app bundle
 if [ -n "${SIGN_IDENTITY}" ]; then
     echo "==> Signing app bundle with: ${SIGN_IDENTITY}..."
-    codesign --force --options runtime --sign "${SIGN_IDENTITY}" "${APP_BUNDLE}/Contents/MacOS/${EXECUTABLE_NAME}"
-    codesign --force --options runtime --sign "${SIGN_IDENTITY}" "${APP_BUNDLE}"
+    scripts/embed-sparkle.sh "${APP_BUNDLE}" "${SIGN_IDENTITY}" --options runtime --timestamp
+    codesign --force --options runtime --timestamp \
+        --entitlements MacOSAudioRenamer.entitlements --sign "${SIGN_IDENTITY}" "${APP_BUNDLE}"
     echo "==> Verifying signature..."
-    codesign --verify --verbose "${APP_BUNDLE}"
+    codesign --verify --strict --verbose "${APP_BUNDLE}"
 else
-    echo "==> Skipping code signing (no CODESIGN_IDENTITY set)"
+    echo "==> Ad hoc signing (no CODESIGN_IDENTITY set)"
+    scripts/embed-sparkle.sh "${APP_BUNDLE}" -
+    codesign --force --sign - --entitlements MacOSAudioRenamer.entitlements "${APP_BUNDLE}"
 fi
 
 echo "==> Creating DMG..."

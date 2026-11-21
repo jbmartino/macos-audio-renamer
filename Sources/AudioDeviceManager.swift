@@ -41,6 +41,53 @@ final class AudioDeviceManager {
         defaultOutputUID = uid
     }
 
+    /// Menu action for a speaker. If enabled in settings, also switches to the
+    /// microphone that belongs to the same physical device.
+    func selectOutput(uid: String) {
+        setDefaultOutput(uid: uid)
+        guard Preferences.switchInputWithOutput,
+              let device = devices.first(where: { $0.uid == uid }),
+              let group = deviceGroups.first(where: { $0.id == device.hardwareGroupKey }),
+              let input = group.input else { return }
+        setDefaultInput(uid: input.uid)
+    }
+
+    // MARK: - Naming
+
+    /// The one name for a physical device (applies to its speaker and mic).
+    func name(for group: DeviceGroup) -> String {
+        if let name = Preferences.customName(for: group.id) { return name }
+        // Older versions stored names for single (unpaired) devices by UID.
+        let members = [group.output, group.input].compactMap { $0 }
+        if members.count == 1, let name = Preferences.customName(for: members[0].uid) { return name }
+        return ""
+    }
+
+    func rename(group: DeviceGroup, to name: String) {
+        Preferences.setCustomName(name, for: group.id)
+        // A single-device group's legacy UID name would otherwise shadow the new one.
+        let members = Set([group.output?.uid, group.input?.uid].compactMap { $0 })
+        if members.count == 1, let uid = members.first {
+            Preferences.setCustomName(nil, for: uid)
+        }
+        assignDisplayLabels()
+    }
+
+    /// Per-device override, used only when the speaker and mic should differ.
+    func overrideName(for device: AudioDevice) -> String {
+        Preferences.customName(for: device.uid) ?? ""
+    }
+
+    func setOverrideName(_ name: String, for device: AudioDevice) {
+        Preferences.setCustomName(name, for: device.uid)
+        assignDisplayLabels()
+    }
+
+    func resetAllNames() {
+        Preferences.resetAllNames()
+        assignDisplayLabels()
+    }
+
     /// Set both input and output for a device group (physical hardware)
     func setBoth(group: DeviceGroup) {
         if let output = group.output {
@@ -109,21 +156,15 @@ final class AudioDeviceManager {
     }
 
     func assignDisplayLabels() {
-        let nameCounts = Dictionary(grouping: devices, by: \.name)
+        let names = Preferences.customNames
         for i in devices.indices {
             let device = devices[i]
-            // Check for a group-level custom name first
-            let groupKey = device.hardwareGroupKey
-            if let groupName = Preferences.customName(for: groupKey) {
-                let kind = device.hasOutput ? "Speaker" : "Mic"
-                devices[i].displayLabel = "\(groupName) \(kind)"
-            } else if let custom = Preferences.customName(for: device.uid) {
-                devices[i].displayLabel = custom
-            } else if let group = nameCounts[device.name], group.count > 1 {
-                devices[i].displayLabel = device.name
-            } else {
-                devices[i].displayLabel = device.name
-            }
+            devices[i].displayLabel = DeviceNaming.label(
+                uid: device.uid,
+                groupKey: device.hardwareGroupKey,
+                originalName: device.name,
+                names: names
+            )
         }
         buildGroups()
     }

@@ -10,13 +10,12 @@ This project was originally inspired by the challenge of using multiple Apple St
 
 ## Features
 
-- **One-click switching** — set default input, output, or both from a single panel (persists to Zoom/Teams calls)
-- **Custom device names** — rename any device to something meaningful (e.g., "Studio Display Speakers" → "Main Display")
+- **Native glass menu** — a compact menu bar menu (Liquid Glass on macOS 26) that closes when you click away
+- **Quick switching** — the menu shows your current **Output** and **Input**; hover either to pick another device. Choosing a speaker switches to the same device's mic automatically (can be turned off).
+- **One name per device** — rename a device once and the name applies to both its speaker and mic (e.g., "Studio Display" → "Main Display"). Name them separately in Settings if you want.
 - **Paired device grouping** — speaker + mic pairs are linked for devices that share a name stem (Studio Displays, MacBook Pro, AirPods, etc.)
-- **Use Both** — set a paired device as both input and output with one click
 - **Auto-restore** — your preferred device is automatically retained when reconnected
-- **Device testing** — play a test chime through any speaker, monitor mic input levels with a live meter
-- **Two-column layout** — outputs on the left, inputs on the right for quick comparison
+- **Device testing** — in Settings, play a test chime through any speaker or watch a live mic level meter
 
 ## Install
 
@@ -56,10 +55,10 @@ swift test
 ## Usage
 
 1. Click the speaker icon in the menu bar
-2. **Use Both** — sets a paired device as both input and output
-3. **Output / Input** — click a device to set it as the default
-4. **Rename** — type a custom name and click **Save**
-5. **Test** — hit the play button to hear a chime on that speaker, or the mic button to see a live input level
+2. **Output ▸** — hover and click a device to make it your output (by default its mic becomes your input too)
+3. **Input ▸** — choose a different microphone; the pencil on either row renames the current device
+4. **Settings… (⌘,)** — rename devices, name a speaker and mic separately (expand a device with the chevron), test speakers/mics, and toggle "Switch microphone with speaker"
+5. **Check for Updates…** — updates also install automatically (release builds only)
 6. Add to **System Settings > General > Login Items** to launch at startup
 
 ## How it works
