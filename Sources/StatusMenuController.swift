@@ -207,9 +207,15 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     private func menuLabel(for device: AudioDevice, among list: [AudioDevice]) -> String {
         let duplicates = list.filter { $0.displayLabel == device.displayLabel }
         guard duplicates.count > 1 else { return device.displayLabel }
+        guard let serial = serial(of: device) else { return device.displayLabel }
+        let tags = DeviceNaming.shortSerials(duplicates.compactMap(serial(of:)))
+        return "\(device.displayLabel) (\(tags[serial] ?? DeviceNaming.shortSerial(serial)))"
+    }
+
+    private func serial(of device: AudioDevice) -> String? {
         let parts = device.hardwareGroupKey.split(separator: ":")
-        guard parts.count >= 3, !device.hardwareGroupKey.hasPrefix("name:") else { return device.displayLabel }
-        return "\(device.displayLabel) (\(DeviceNaming.shortSerial(String(parts[2]))))"
+        guard parts.count >= 3, !device.hardwareGroupKey.hasPrefix("name:") else { return nil }
+        return String(parts[2])
     }
 
     private func sorted(_ devices: [AudioDevice], preferred: String?) -> [AudioDevice] {

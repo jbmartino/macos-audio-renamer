@@ -69,4 +69,16 @@ enum DeviceNaming {
     static func shortSerial(_ serial: String) -> String {
         String(serial.suffix(4))
     }
+
+    /// Shortest tags (at least 4 characters, taken from the end) that are different for every
+    /// serial. Two Studio Displays can share their last characters ("…8802E" vs "…0802E").
+    static func shortSerials(_ serials: [String]) -> [String: String] {
+        let unique = Array(Set(serials))
+        let longest = unique.map(\.count).max() ?? 0
+        var length = 4
+        while length < longest, Set(unique.map { $0.suffix(length) }).count < unique.count {
+            length += 1
+        }
+        return Dictionary(uniqueKeysWithValues: unique.map { ($0, String($0.suffix(length))) })
+    }
 }

@@ -83,6 +83,14 @@ final class AudioDeviceManager {
         assignDisplayLabels()
     }
 
+    /// Adds names from a backup; returns how many were new and how many replaced a name.
+    func importNames(_ imported: [String: String]) -> (added: Int, changed: Int) {
+        let result = NameTransfer.merge(imported, into: Preferences.customNames)
+        Preferences.customNames = result.names
+        assignDisplayLabels()
+        return (result.added, result.changed)
+    }
+
     func resetAllNames() {
         Preferences.resetAllNames()
         assignDisplayLabels()

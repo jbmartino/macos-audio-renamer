@@ -14,6 +14,7 @@ This project was originally inspired by the challenge of using multiple Apple St
 - **Quick switching** — the menu shows your current **Output** and **Input**; hover either to pick another device. Choosing a speaker switches to the same device's mic automatically (can be turned off).
 - **One name per device** — rename a device once and the name applies to both its speaker and mic (e.g., "Studio Display" → "Main Display"). Name them separately in Settings if you want.
 - **Paired device grouping** — speaker + mic pairs are linked for devices that share a name stem (Studio Displays, MacBook Pro, AirPods, etc.)
+- **Name backup** — export your names to a file and import them on another Mac (Settings › Names)
 - **Open at login** — one switch in Settings (the app asks once after install or update)
 - **Auto-restore** — your preferred device is automatically retained when reconnected
 - **Device testing** — in Settings, play a test chime through any speaker or watch a live mic level meter

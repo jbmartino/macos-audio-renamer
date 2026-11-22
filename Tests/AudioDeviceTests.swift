@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import MacOSAudioRenamer
 
@@ -205,5 +206,51 @@ struct DeviceNamingTests {
         let names = [speaker.hardwareGroupKey: "  ", mic.uid: ""]
         #expect(label(speaker, names) == "Studio Display Speakers")
         #expect(label(mic, names) == "Studio Display Microphone")
+    }
+}
+
+@Suite("Serial tags")
+struct SerialTagTests {
+    @Test("Displays whose serials end alike get longer, different tags")
+    func sharedEnding() {
+        let tags = DeviceNaming.shortSerials(["00008030-000A45CA1498802E", "00008030-0012404C2210802E"])
+        #expect(tags["00008030-000A45CA1498802E"] == "8802E")
+        #expect(tags["00008030-0012404C2210802E"] == "0802E")
+    }
+
+    @Test("Different endings keep the short four-character tag")
+    func distinctEnding() {
+        let tags = DeviceNaming.shortSerials(["A1498802E", "C2210901F"])
+        #expect(tags["A1498802E"] == "802E")
+        #expect(tags["C2210901F"] == "901F")
+    }
+}
+
+@Suite("Name backup")
+struct NameBackupTests {
+    @Test("Export then import gives back the same names")
+    func roundTrip() throws {
+        let names = ["AppleUSBAudioEngine:Apple Inc.:A1": "Main Display", "38-C4-3A-52-AB-B9": "Pods"]
+        let data = try NameTransfer.exportData(names: names)
+        #expect(try NameTransfer.names(from: data) == names)
+    }
+
+    @Test("A plain name object imports, blank names are dropped")
+    func bareObject() throws {
+        let data = Data(#"{"a": "Desk", "b": "  "}"#.utf8)
+        #expect(try NameTransfer.names(from: data) == ["a": "Desk"])
+    }
+
+    @Test("A file without names is rejected")
+    func empty() {
+        #expect(throws: NameTransfer.Failure.self) { try NameTransfer.names(from: Data("[]".utf8)) }
+    }
+
+    @Test("Imported names are added and win over current ones")
+    func merge() {
+        let result = NameTransfer.merge(["a": "New A", "b": "B", "c": "Same"], into: ["a": "Old A", "c": "Same", "d": "D"])
+        #expect(result.names == ["a": "New A", "b": "B", "c": "Same", "d": "D"])
+        #expect(result.added == 1)
+        #expect(result.changed == 1)
     }
 }

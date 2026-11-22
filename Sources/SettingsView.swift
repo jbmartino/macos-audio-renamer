@@ -12,12 +12,13 @@ struct SettingsView: View {
     @State private var switchInputWithOutput = Preferences.switchInputWithOutput
     @State private var openAtLogin = LoginItem.isEnabled || LoginItem.needsApproval
     @State private var loginNeedsApproval = LoginItem.needsApproval
+    @State private var namesMessage: String?
     @State private var outputTester = OutputTester()
     @State private var inputMonitor = InputLevelMonitor()
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .top, spacing: 20) {
                 section("Devices", footer: "One name covers a device's speaker and microphone. Expand a device to name them separately.") {
                     VStack(spacing: 8) {
                         ForEach(groups) { group in
@@ -25,104 +26,133 @@ struct SettingsView: View {
                         }
                     }
                 }
+                .frame(width: Layout.devicesWidth)
 
-                section("Behavior") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Toggle(isOn: $openAtLogin) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Open at login")
-                                if loginNeedsApproval {
-                                    HStack(spacing: 4) {
-                                        Text("Allow it in Login Items to finish.")
-                                        Button("Open Settings…") { LoginItem.openSystemSettings() }
-                                            .buttonStyle(.link)
-                                    }
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                } else if !LoginItem.isInstalledCopy {
-                                    Text("Move the app to Applications first.")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        .toggleStyle(.switch)
-                        .disabled(!LoginItem.isInstalledCopy && !openAtLogin)
-                        .onChange(of: openAtLogin) { _, value in
-                            guard value != (LoginItem.isEnabled || LoginItem.needsApproval) else { return }
-                            LoginItem.setEnabled(value)
-                            refreshLoginItem()
-                        }
-
-                        Divider()
-
-                        Toggle(isOn: $switchInputWithOutput) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Switch microphone with speaker")
-                                Text("Picking a speaker from the menu also picks the same device's mic.")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .toggleStyle(.switch)
-                        .onChange(of: switchInputWithOutput) { _, value in
-                            Preferences.switchInputWithOutput = value
-                        }
-
-                        Divider()
-
-                        HStack {
-                            Text("Custom names")
-                            Spacer()
-                            Button("Reset All") { manager.resetAllNames() }
-                        }
-                    }
-                    .padding(14)
-                    .glassCard()
-                }
-
-                section("Updates") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        if updater.isEnabled {
-                            Toggle(isOn: Binding(
-                                get: { updater.automaticUpdates },
-                                set: { updater.automaticUpdates = $0 }
-                            )) {
+                VStack(alignment: .leading, spacing: 18) {
+                    section("Behavior") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle(isOn: $openAtLogin) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Update automatically")
-                                    Text("Downloads new versions in the background. Restart from the menu to finish.")
+                                    Text("Open at login")
+                                    if loginNeedsApproval {
+                                        HStack(spacing: 4) {
+                                            Text("Allow it in Login Items to finish.")
+                                            Button("Open Settings…") { LoginItem.openSystemSettings() }
+                                                .buttonStyle(.link)
+                                        }
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
+                                    } else if !LoginItem.isInstalledCopy {
+                                        Text("Move the app to Applications first.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .toggleStyle(.switch)
+                            .disabled(!LoginItem.isInstalledCopy && !openAtLogin)
+                            .onChange(of: openAtLogin) { _, value in
+                                guard value != (LoginItem.isEnabled || LoginItem.needsApproval) else { return }
+                                LoginItem.setEnabled(value)
+                                refreshLoginItem()
+                            }
 
                             Divider()
-                        }
 
-                        HStack {
-                            Text("Version \(updater.currentVersion)")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            if updater.isEnabled {
-                                Button("Check Now") { updater.checkForUpdates() }
-                            } else {
-                                Text("Local build — updates off")
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                            Toggle(isOn: $switchInputWithOutput) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Switch microphone with speaker")
+                                    Text("Picking a speaker from the menu also picks the same device's mic.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .toggleStyle(.switch)
+                            .onChange(of: switchInputWithOutput) { _, value in
+                                Preferences.switchInputWithOutput = value
+                            }
+
+                        }
+                        .padding(14)
+                        .glassCard()
+                    }
+
+                    section("Names", footer: namesMessage) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 8) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Backup")
+                                    Text("Take your names to another Mac.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                Button("Import…") { importNames() }
+                                Button("Export…") { exportNames() }
+                            }
+
+                            Divider()
+
+                            HStack {
+                                Text("Custom names")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Button("Reset All") {
+                                    manager.resetAllNames()
+                                    namesMessage = "All names reset to the macOS names."
+                                }
                             }
                         }
+                        .padding(14)
+                        .glassCard()
                     }
-                    .padding(14)
-                    .glassCard()
+
+                    section("Updates") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            if updater.isEnabled {
+                                Toggle(isOn: Binding(
+                                    get: { updater.automaticUpdates },
+                                    set: { updater.automaticUpdates = $0 }
+                                )) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Update automatically")
+                                        Text("Downloads new versions in the background. Restart from the menu to finish.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .toggleStyle(.switch)
+
+                                Divider()
+                            }
+
+                            HStack {
+                                Text("Version \(updater.currentVersion)")
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                if updater.isEnabled {
+                                    Button("Check Now") { updater.checkForUpdates() }
+                                } else {
+                                    Text("Local build — updates off")
+                                        .font(.caption)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                        }
+                        .padding(14)
+                        .glassCard()
+                    }
                 }
+                .frame(width: Layout.sideWidth)
             }
             .padding(20)
             .padding(.top, 18) // room for the transparent title bar
         }
         .scrollBounceBehavior(.basedOnSize)
-        .frame(width: 460)
-        .frame(maxHeight: 640)
+        .frame(width: Layout.windowWidth)
+        .frame(maxHeight: 820)
         .fixedSize(horizontal: false, vertical: true)
         .onAppear {
             refreshLoginItem()
@@ -135,6 +165,46 @@ struct SettingsView: View {
         .onDisappear {
             outputTester.stop()
             stopListening()
+        }
+    }
+
+    private enum Layout {
+        static let devicesWidth: CGFloat = 480
+        static let sideWidth: CGFloat = 300
+        static let windowWidth: CGFloat = devicesWidth + sideWidth + 20 * 3
+    }
+
+    // MARK: - Name backup
+
+    private func exportNames() {
+        let names = Preferences.customNames
+        guard !names.isEmpty else {
+            namesMessage = "There are no custom names to export yet."
+            return
+        }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "macOS Audio Renamer Names \(Date().formatted(.iso8601.year().month().day())).json"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try NameTransfer.exportData(names: names).write(to: url, options: .atomic)
+            namesMessage = "Exported \(names.count) \(names.count == 1 ? "name" : "names")."
+        } catch {
+            namesMessage = "Export failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func importNames() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let result = manager.importNames(try NameTransfer.names(from: Data(contentsOf: url)))
+            namesMessage = result.added + result.changed == 0
+                ? "Your names already match this backup."
+                : "Imported \(result.added) new and \(result.changed) updated \(result.added + result.changed == 1 ? "name" : "names")."
+        } catch {
+            namesMessage = "Import failed: \(error.localizedDescription)"
         }
     }
 
@@ -299,7 +369,10 @@ struct SettingsView: View {
         let members = [group.output?.name, group.input?.name].compactMap { $0 }
         parts.append(Array(NSOrderedSet(array: members)).compactMap { $0 as? String }.joined(separator: " + "))
         if !group.id.hasPrefix("name:"), group.serial != group.id {
-            parts.append(DeviceNaming.shortSerial(group.serial))
+            let lookalikes = manager.deviceGroups
+                .filter { $0.physicalName == group.physicalName && !$0.id.hasPrefix("name:") }
+                .map(\.serial)
+            parts.append(DeviceNaming.shortSerials(lookalikes)[group.serial] ?? DeviceNaming.shortSerial(group.serial))
         }
         return parts.joined(separator: " · ")
     }
